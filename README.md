@@ -1,0 +1,1 @@
+This is a RAG-based chatbot about my professional resume and personal hobbies.

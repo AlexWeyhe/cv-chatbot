@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS chat_analytics (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    query TEXT NOT NULL,
+    retrieved_chunks JSONB NOT NULL,
+    answer TEXT NOT NULL
+);
