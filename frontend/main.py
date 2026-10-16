@@ -38,7 +38,7 @@ def app():
             <p>NLP & LLM Enthusiast</p>
         </div>
         <div class="links">
-            <a href="https://github.com/AlexWeyhe" target="_blank">GitHub</a>
+            <a href="https://github.com/AlexWeyhe/cv-chatbot" target="_blank">GitHub</a>
         </div>
     </div>
     """,
