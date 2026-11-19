@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import chromadb
-from openai import OpenAI
+from guardrails import GuardrailsAsyncOpenAI, GuardrailTripwireTriggered
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext
@@ -18,7 +18,7 @@ SYSTEM_MESSAGE = """You are a CV chatbot for Alexander Weyhe.
         You will receive retrieved context from a knowledge base.
         
         Instructions:
-        -Answer in the language of the question asked.
+        -Always answer in the language of the question asked.
         -Answer only using information contained in the retrieved context.
         -If the context is insufficient, do not fabricate an answer. Instead, respond naturally and vary your wording. Avoid repeating the same standard phrase every time.
         -When the requested information is unavailable, use a short, natural, and occasionally playful response appropriate to the question. For example, in German: "Diese Frage beantwortet Alex gerne persönlich.", "Diese Info liegt mir im Moment nicht vor.", "Danke für deine Frage, im Moment kann ich sie leider nicht beantworten.", "Du bist ganz schön neugierig – das weiß ich leider nicht.", "Dieses Detail ist mir nicht bekannt.", "Gute Frage, die Info habe ich gerade nicht parat.", or "Das weiß ich leider nicht."
@@ -55,12 +55,13 @@ def load_index(api_key):
     return index
 
 
-def answer_question(query: str, 
-                    client: OpenAI, 
-                    chat_history: list[dict], 
-                    retriever,
-                    database_url: str | None = None):
+async def answer_question(query: str, 
+                          client: GuardrailsAsyncOpenAI, 
+                          chat_history: list[dict], 
+                          retriever,
+                          database_url: str | None = None):
 
+    guardrail_check = True
     nodes = retriever.retrieve(query)
     context = "\n\n".join([node.get_content() for node in nodes])
     
@@ -76,12 +77,17 @@ def answer_question(query: str,
         }
     ]
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages,
-    )
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+        )
     
-    answer = response.choices[0].message.content
+        answer = response.llm_response.choices[0].message.content
+    
+    except GuardrailTripwireTriggered:
+        answer = "I cannot process this request."
+        guardrail_check = False
 
     record_query(
         query=query,
@@ -97,4 +103,4 @@ def answer_question(query: str,
         database_url=database_url,
     )
 
-    return answer
+    return answer, guardrail_check

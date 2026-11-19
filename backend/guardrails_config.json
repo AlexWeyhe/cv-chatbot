@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "pre_flight": {
+    "version": 1,
+    "guardrails": []
+  },
+  "input": {
+    "version": 1,
+    "guardrails": [
+      {
+        "name": "Jailbreak",
+        "config": {
+          "confidence_threshold": "0.8",
+          "model": "gpt-4o-mini",
+          "include_reasoning": false
+        }
+      }
+    ]
+  }
+}
