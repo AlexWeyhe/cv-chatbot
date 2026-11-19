@@ -70,24 +70,39 @@ def app():
         )
         
         answer = response.json()["answer"]
+        guardrail_check = response.json()["guardrail_check"]
             
         with st.chat_message("assistant", avatar="extras/avatar.png"):
             st.write_stream(stream_answer(answer))
             
         st.session_state["chat_limit"] += 1
         
-        st.session_state["chat_history"].extend(
-            [
-                {
-                    "role": "user",
-                    "content": query,
-                },
-                {
-                    "role": "assistant",
-                    "content": answer,
-                }
-            ]
-        )
+        if guardrail_check:
+            st.session_state["chat_history"].extend(
+                [
+                    {
+                        "role": "user",
+                        "content": query,
+                    },
+                    {
+                        "role": "assistant",
+                        "content": answer,
+                    }
+                ]
+            )
+        else:
+            st.session_state["chat_history"].extend(
+                [
+                    {
+                        "role": "user",
+                        "content": "Malicious answer detected.",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": answer,
+                    }
+                ]
+            )
 
     if st.session_state["chat_limit"] >= 10:
         st.info("You reached the limit of 10 questions. Feel free to reach out to me, for further questions.")

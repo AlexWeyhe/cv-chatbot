@@ -25,14 +25,14 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/chat")
-def chat(request: Request, body: ChatRequest):
+async def chat(request: Request, body: ChatRequest):
     resources = request.app.state.resources
     
-    answer = answer_question(
-        query=body.message,
-        client=resources["client"],
-        chat_history=body.chat_history,
-        retriever=resources["retriever"],
-    )
+    answer, guardrail_check = await answer_question(query=body.message,
+                                        client=resources["client"],
+                                        chat_history=body.chat_history,
+                                        retriever=resources["retriever"],
+                                        )
 
-    return {"answer": answer}
+    return {"answer": answer,
+            "guardrail_check": guardrail_check}
